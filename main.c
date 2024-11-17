@@ -215,7 +215,7 @@ int main() {
           break;
         }
 
-        enqueue(qIODisco, processoParaExecutar);
+        
 
         printf("Processo PID: %d executou por %du.t\n", processoParaExecutar.pid,
                instanteProximoIO - time);
