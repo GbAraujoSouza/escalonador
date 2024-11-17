@@ -1,10 +1,10 @@
 #include "constants.h"
-#include "types.h"
+#include "process.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-Processo processos[MAX_PROCESS];
+Process processos[MAX_PROCESS];
 int numProcessos = 0;
 int numero_io = 0;
 
@@ -56,7 +56,6 @@ void leProcessosArquivo(const char *nomeArquivo){
     processos[numProcessos].tempoDeServico = tempo_servico;
     processos[numProcessos].tempoChegada = tempo_chegada;
     processos[numProcessos].estado = PRONTO;
-    processos[numProcessos].prioridade = 0;
 
     processos[numProcessos].io = (IO *) malloc(sizeof(IO) * numero_io);
     for(int i=0; i<numero_io; i++){
@@ -92,4 +91,11 @@ void printarProcessos(){
     printf("\n");
   }
 
+}
+
+int main() {
+  leProcessosArquivo("teste1.txt");
+  printarProcessos();
+
+  return 0;
 }

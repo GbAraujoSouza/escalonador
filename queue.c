@@ -1,52 +1,75 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "queue.h"
-#include "constants.h"
 
-Fila *criaFila(int tam) {
-    Fila *fila = (Fila *) malloc(sizeof(Fila));
-    fila->processo = (Processo *) malloc(sizeof(Processo) * MAX_PROCESS);
-    fila->inicio = fila->fim=-1;
-    fila->tam = 0;
-    return fila;
+Queue* alocaQueue() {
+  Queue* newQueue = (Queue*)malloc(sizeof(Queue));
+  newQueue->head = NULL;
+  newQueue->tail = NULL;
+  newQueue->size = 0;
+  return newQueue;
 }
 
-void destroiFila(Fila *fila) {
-  if(fila){    
-      free(fila->processo);
-      free(fila);
+bool isEmpty(Queue* queue) {
+  return queue->head == NULL;
+}
+
+bool enqueue(Queue* queue, Process newProcess) {
+  if (queue == NULL) return false; 
+
+  Node* newNode = (Node*)malloc(sizeof(Node));
+  if (newNode == NULL) return false;
+
+  newNode->process = newProcess;
+  newNode->next = NULL;
+
+
+  if (isEmpty(queue)) {
+    // fila vazia
+    queue->head = newNode;
+  } else {
+    queue->tail->next = newNode;
   }
+
+  queue->tail = newNode;
+  queue->size++;
+  return true;
 }
 
-int filaVazia(Fila *fila) {
-    return fila->tam == 0;
+bool dequeue(Queue* queue, Process* process) {
+  if (queue == NULL || isEmpty(queue)) {
+    return false;
+  }
+
+  
+  Node* removedNode = queue->head;
+  *process = removedNode->process;
+
+  queue->head = removedNode->next;
+  if (queue->head == NULL) {
+    // fila ficou vazia
+    queue->tail = NULL;
+  }
+
+  queue->size--;
+  free(removedNode);
+
+  return true;
 }
 
-void enfileira(Fila *fila, Processo *processo) {
-    if(fila->tam == MAX_PROCESS) {
-        printf("Fila cheia\n");
-        return;
-    }
-    if(fila->fim == -1) {
-        fila->inicio = fila->fim = 0;
-    } else {
-        fila->fim = (fila->fim + 1) % MAX_PROCESS;
-    }
-    fila->processo[fila->fim] = *processo;
-    fila->tam++;
+Process* peek(Queue* queue) {
+  if (isEmpty(queue) || queue == NULL)
+    return NULL;
+
+  return &(queue->head->process);
 }
 
-Processo *desenfileira(Fila *fila) {
-    Processo *processo = (Processo *) malloc(sizeof(Processo));
-    if(fila->tam == 0) {
-        printf("Fila vazia\n");
-        return NULL;
-    }
-    *processo = fila->processo[fila->inicio];
-    if(fila->inicio == fila->fim) {
-        fila->inicio = fila->fim = -1;
-    } else {
-        fila->inicio = (fila->inicio + 1) % MAX_PROCESS;
-    }
-    fila->tam--;
-    return processo;
+void printQueue(Queue* queue) {
+  Node* n = queue->head;
+  while (n != NULL) {
+    printf("%d ", n->process.pid);
+    n = n->next;
+  }
+  puts("");
 }
+

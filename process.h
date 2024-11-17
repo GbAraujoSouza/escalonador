@@ -26,7 +26,6 @@ typedef struct{
   int tempoChegada;
   IO *io;
   estadosdoProcesso estado;
-  int prioridade;
-} Processo;
+} Process;
 
 #endif

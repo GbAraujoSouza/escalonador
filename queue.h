@@ -1,22 +1,27 @@
 #ifndef QUEUE_H
 #define QUEUE_H
-#include <stdlib.h>
-#include <stdio.h>
-#include "constants.h"
-#include "types.h"
 
-typedef struct{
-  Processo *processo;
-  int inicio;
-  int fim;
-  int tam;
-} Fila;
+#include "process.h"
+#include <stdbool.h>
 
-Fila *criaFila(int tam);
-void destroiFila(Fila *fila);
-int filaVazia(Fila *fila);
-void enfileira(Fila *fila, Processo *processo);
-Processo *desenfileira(Fila *fila);
+typedef struct Node {
+  Process process;
+  struct Node *next;
+} Node;
+
+typedef struct {
+  Node* head;
+  Node* tail;
+  int size;
+} Queue;
+
+Queue* alocaQueue();
+bool enqueue(Queue* queue, Process newProcess);
+bool dequeue(Queue* queue, Process* process);
+Process* peek(Queue* queue);
+bool isEmpty(Queue* queue);
+void freeQueue(Queue* queue);
+void printQueue(Queue* queue);
 
 
 #endif
