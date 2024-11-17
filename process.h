@@ -18,6 +18,7 @@ typedef struct{
   int tempoIO;
   tiposIO tipoIO;
   int tempoChegada;
+  int tempoInicio;
 } IO;
 
 typedef struct{
@@ -25,6 +26,7 @@ typedef struct{
   int tempoDeServico;
   int tempoChegada;
   IO *io;
+  int qntIO;
   estadosdoProcesso estado;
 } Process;
 
