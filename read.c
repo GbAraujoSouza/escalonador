@@ -6,6 +6,7 @@
 
 Processo processos[MAX_PROCESS];
 int numProcessos = 0;
+int numero_io = 0;
 
 void leProcessosArquivo(const char *nomeArquivo){
   FILE *arquivo = fopen(nomeArquivo, "r");
@@ -21,9 +22,10 @@ void leProcessosArquivo(const char *nomeArquivo){
       break;
     }
 
-    int pid, tempo_chegada, tempo_servico, numero_io;
+    int pid, tempo_chegada, tempo_servico;
     int tipos_io[MAX_IO_TIME];
     int tempos_io[MAX_IO_TIME];
+    int tempo_chegada_io[MAX_IO_TIME];
 
     char *token = strtok(line, ";");
     pid = atoi(token);
@@ -43,6 +45,9 @@ void leProcessosArquivo(const char *nomeArquivo){
 
       token = strtok(NULL, ";");
       tempos_io[i] = atoi(token);
+
+      token = strtok(NULL, ";");
+      tempo_chegada_io[i] = atoi(token);
     }
 
     
@@ -53,19 +58,14 @@ void leProcessosArquivo(const char *nomeArquivo){
     processos[numProcessos].estado = PRONTO;
     processos[numProcessos].prioridade = 0;
 
+    processos[numProcessos].io = (IO *) malloc(sizeof(IO) * numero_io);
     for(int i=0; i<numero_io; i++){
-      processos[numProcessos].tempoIO += tempos_io[i];
+      processos[numProcessos].io[i].tempoIO = tempos_io[i];
+      processos[numProcessos].io[i].tipoIO = tipos_io[i];
+      processos[numProcessos].io[i].tempoChegada = tempo_chegada_io[i];
     }
-    
-    for(int i=0; i<numero_io; i++){
-      if(tipos_io[i] == 0){
-        processos[numProcessos].tipoIO = DISCO;
-      }else if(tipos_io[i] == 1){
-        processos[numProcessos].tipoIO = IMPRESSORA;
-      }else if(tipos_io[i] == 2){
-        processos[numProcessos].tipoIO = FITA;
-      }
-    }
+
+
     //Fim da associação
 
     numProcessos++;
@@ -76,13 +76,20 @@ void leProcessosArquivo(const char *nomeArquivo){
 
 void printarProcessos(){
   for(int i=0; i<numProcessos; i++){
-    printf("PID: %d\n", processos[i].pid);
-    printf("Tempo de Servico: %d\n", processos[i].tempoDeServico);
-    printf("Tempo de Chegada: %d\n", processos[i].tempoChegada);
-    printf("Tempo de IO: %d\n", processos[i].tempoIO);
-    printf("Tipo de IO: %d\n", processos[i].tipoIO);
-    printf("Estado: %d\n", processos[i].estado);
-    printf("Prioridade: %d\n", processos[i].prioridade);
+    printf("Processo %d\n", processos[i].pid);
+    printf("Tempo de chegada: %d\n", processos[i].tempoChegada);
+    printf("Tempo de servico: %d\n", processos[i].tempoDeServico);
+    printf("Numero de IOs: %d\n", MAX_IO_TIME);
+    for(int j=0; j<=numero_io; j++){
+      if(processos[i].io[j].tempoIO == 0){
+        break;
+      }
+      printf("IO %d\n", j);
+      printf("Tipo: %d\n", processos[i].io[j].tipoIO);
+      printf("Tempo de IO: %d\n", processos[i].io[j].tempoIO);
+      printf("Tempo de chegada: %d\n", processos[i].io[j].tempoChegada);
+    }
     printf("\n");
   }
+
 }

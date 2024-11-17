@@ -15,11 +15,16 @@ typedef enum{
 } tiposIO;
 
 typedef struct{
+  int tempoIO;
+  tiposIO tipoIO;
+  int tempoChegada;
+} IO;
+
+typedef struct{
   int pid;
   int tempoDeServico;
   int tempoChegada;
-  int tempoIO;
-  tiposIO tipoIO;
+  IO *io;
   estadosdoProcesso estado;
   int prioridade;
 } Processo;
