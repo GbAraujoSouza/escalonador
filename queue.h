@@ -22,6 +22,7 @@ Process* peek(Queue* queue);
 bool isEmpty(Queue* queue);
 void freeQueue(Queue* queue);
 void printQueue(Queue* queue);
+int contains(Queue *queue, int pid); 
 
 
 #endif

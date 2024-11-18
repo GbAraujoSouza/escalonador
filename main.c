@@ -9,12 +9,12 @@
 #define MAX_SERVICE_TIME 20
 #define MAX_IO_TIME 5
 
-#define QUANTUM 4
+#define QUANTUM 5
 
 //Tipos de IO e suas respectivas unidades de tempo
-#define TEMPO_IMPRESSORA 20
-#define TEMPO_FITA 12
-#define TEMPO_DISCO 4
+#define TEMPO_IMPRESSORA 8
+#define TEMPO_FITA 3
+#define TEMPO_DISCO 7
 
 
 Queue *qNovosProcessos, *qAltaPrioridade, *qBaixaPrioridade;
@@ -30,7 +30,8 @@ void alocaNovosProcessos()
   {
     Process novoProcesso;
     dequeue(qNovosProcessos, &novoProcesso);
-    enqueue(qAltaPrioridade, novoProcesso);
+    if(contains(qAltaPrioridade, novoProcesso.pid) == 0)
+      enqueue(qAltaPrioridade, novoProcesso);
     printf("Novo processo com pid: %d\n", novoProcesso.pid);
   }
 }
@@ -57,7 +58,8 @@ void liberaProcessosDoIO()
     {
       Process processoRetornado;
       dequeue(qIOFita, &processoRetornado);
-      enqueue(qAltaPrioridade, processoRetornado);
+      if(contains(qAltaPrioridade, processoRetornado.pid) == 0)
+        enqueue(qAltaPrioridade, processoRetornado);
       printf("Processo PID: %d saiu da fila de Fita em %du.t.\n",
              processoRetornado.pid, time);
     }
@@ -83,7 +85,8 @@ void liberaProcessosDoIO()
     {
       Process processoRetornado;
       dequeue(qIOImpressora, &processoRetornado);
-      enqueue(qAltaPrioridade, processoRetornado);
+      if(contains(qAltaPrioridade, processoRetornado.pid) == 0)
+        enqueue(qAltaPrioridade, processoRetornado);
       printf("Processo PID: %d saiu da fila de Impressora em %du.t.\n",
              processoRetornado.pid, time);
     }
@@ -109,7 +112,8 @@ void liberaProcessosDoIO()
     {
       Process processoRetornado;
       dequeue(qIODisco, &processoRetornado);
-      enqueue(qBaixaPrioridade, processoRetornado);
+      if(contains(qAltaPrioridade, processoRetornado.pid) == 0)
+        enqueue(qBaixaPrioridade, processoRetornado);
       printf("Processo PID: %d saiu da fila de Disco em %du.t.\n",
              processoRetornado.pid, time);
     }
@@ -137,7 +141,8 @@ void leProcessos(){
   Process *processos = leitura(nomeArquivo);
   for (int i = 0; i < numeroProcessos; i++)
   {
-    enqueue(qNovosProcessos, processos[i]);
+    if(contains(qNovosProcessos, processos[i].pid) == 0)
+      enqueue(qNovosProcessos, processos[i]);
     numProcessos++;
   }
   sleep(1);
@@ -242,17 +247,20 @@ int main()
         switch (proximoIO.tipoIO)
         {
         case DISCO:
-          enqueue(qIODisco, processoParaExecutar);
+          if(contains(qIODisco, processoParaExecutar.pid) == 0)
+            enqueue(qIODisco, processoParaExecutar);
           printf("Processo PID: %d pediu operacao de IO Disco em %du.t.\n",
                  processoParaExecutar.pid, time);
           break;
         case IMPRESSORA:
-          enqueue(qIOImpressora, processoParaExecutar);
+          if(contains(qIOImpressora, processoParaExecutar.pid) == 0)
+            enqueue(qIOImpressora, processoParaExecutar);
           printf("Processo PID: %d pediu operacao de IO Impressora em %du.t.\n",
                  processoParaExecutar.pid, time);
           break;
         case FITA:
-          enqueue(qIOFita, processoParaExecutar);
+          if(contains(qIOFita, processoParaExecutar.pid) == 0)
+            enqueue(qIOFita, processoParaExecutar);
           printf("Processo PID: %d pediu operacao de IO Fita em %du.t.\n",
                  processoParaExecutar.pid, time);
           break;
@@ -266,7 +274,8 @@ int main()
         printf("Processo PID: %d executou por %du.t.\n",
                processoParaExecutar.pid, QUANTUM);
 
-        enqueue(qBaixaPrioridade, processoParaExecutar);
+        if(contains(qAltaPrioridade, processoParaExecutar.pid) == 0)
+          enqueue(qBaixaPrioridade, processoParaExecutar);
 
         time += QUANTUM;
       }
@@ -295,7 +304,8 @@ int main()
       printf("Processo PID: %d executou por %du.t.\n", processoParaExecutar.pid,
              QUANTUM);
 
-      enqueue(qBaixaPrioridade, processoParaExecutar);
+      if(contains(qAltaPrioridade, processoParaExecutar.pid) == 0)
+        enqueue(qBaixaPrioridade, processoParaExecutar);
 
       time += QUANTUM;
     }

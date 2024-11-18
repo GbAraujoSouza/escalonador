@@ -8,9 +8,9 @@
 #define MAX_IO_TIME 5
 
 //Tipos de IO e suas respectivas unidades de tempo
-#define TEMPO_IMPRESSORA 20
-#define TEMPO_FITA 12
-#define TEMPO_DISCO 4
+#define TEMPO_IMPRESSORA 8
+#define TEMPO_FITA 3
+#define TEMPO_DISCO 7
 
 Process processos[MAX_PROCESS];
 int numeroProcessos = 0;

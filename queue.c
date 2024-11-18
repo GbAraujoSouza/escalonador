@@ -73,3 +73,14 @@ void printQueue(Queue* queue) {
   puts("");
 }
 
+int contains(Queue *queue, int pid) {
+  Node *current = queue->head;
+  while (current != NULL) {
+    if (current->process.pid == pid) {
+      return 1; // Processo encontrado
+    }
+    current = current->next;
+  }
+  return 0; // Processo não encontrado
+}
+
