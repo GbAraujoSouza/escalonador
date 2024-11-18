@@ -1,10 +1,21 @@
 #include "process.h"
 #include "queue.c"
-#include "constants.h"
 #include "read.c"
 #include "process.h"
 #include <stdio.h>
 #include <unistd.h>
+#define MAX_PROCESS 10
+#define TIME_SLICE 4
+#define MAX_SERVICE_TIME 20
+#define MAX_IO_TIME 5
+
+#define QUANTUM 4
+
+//Tipos de IO e suas respectivas unidades de tempo
+#define TEMPO_IMPRESSORA 20
+#define TEMPO_FITA 12
+#define TEMPO_DISCO 4
+
 
 Queue *qNovosProcessos, *qAltaPrioridade, *qBaixaPrioridade;
 Queue *qIODisco, *qIOFita, *qIOImpressora;
@@ -46,7 +57,7 @@ void liberaProcessosDoIO()
     {
       Process processoRetornado;
       dequeue(qIOFita, &processoRetornado);
-      enqueue(qBaixaPrioridade, processoRetornado);
+      enqueue(qAltaPrioridade, processoRetornado);
       printf("Processo PID: %d saiu da fila de Fita em %du.t.\n",
              processoRetornado.pid, time);
     }
@@ -72,7 +83,7 @@ void liberaProcessosDoIO()
     {
       Process processoRetornado;
       dequeue(qIOImpressora, &processoRetornado);
-      enqueue(qBaixaPrioridade, processoRetornado);
+      enqueue(qAltaPrioridade, processoRetornado);
       printf("Processo PID: %d saiu da fila de Impressora em %du.t.\n",
              processoRetornado.pid, time);
     }
@@ -178,13 +189,13 @@ int main()
       printQueue(qIOImpressora);
     }
     sleep(1);
-
-    numProcessosRestantes = qAltaPrioridade->size + qBaixaPrioridade->size;
+    int numProcessosIO = qIODisco->size + qIOFita->size + qIOImpressora->size;
+    numProcessosRestantes = qAltaPrioridade->size + qBaixaPrioridade->size + numProcessosIO;
 
     if (numProcessosRestantes == 0)
     {
       puts("Sem processos a executar\n");
-      time++;
+      time+= QUANTUM;
       continue;
     }
 
