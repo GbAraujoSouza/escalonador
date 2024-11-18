@@ -5,10 +5,10 @@
 #include <string.h>
 
 Process processos[MAX_PROCESS];
-int numProcessos = 0;
+int numeroProcessos = 0;
 int numero_io = 0;
 
-void leProcessosArquivo(const char *nomeArquivo){
+Process* leProcessosArquivo(const char *nomeArquivo){
   FILE *arquivo = fopen(nomeArquivo, "r");
   if(arquivo == NULL){
     printf("Erro ao abrir arquivo\n");
@@ -17,7 +17,7 @@ void leProcessosArquivo(const char *nomeArquivo){
 
   char line[256];
   while(fgets(line, sizeof(line), arquivo)){
-    if(numProcessos>=MAX_PROCESS){
+    if(numeroProcessos>=MAX_PROCESS){
       printf("Numero maximo de processos atingido\n");
       break;
     }
@@ -44,47 +44,60 @@ void leProcessosArquivo(const char *nomeArquivo){
       tipos_io[i] = atoi(token);
 
       token = strtok(NULL, ";");
-      tempos_io[i] = atoi(token);
-
-      token = strtok(NULL, ";");
       tempo_chegada_io[i] = atoi(token);
+
+      if(tipos_io[i] == 0){
+        tempos_io[i] = TEMPO_DISCO;
+      }else if(tipos_io[i] == 1){
+        tempos_io[i] = TEMPO_FITA;
+      }else if(tipos_io[i] == 2){
+        tempos_io[i] = TEMPO_IMPRESSORA;
+      }
     }
 
     
     //Aqui, associamos aos valores lidos do arquivo a cada processo
-    processos[numProcessos].pid = pid;
-    processos[numProcessos].tempoDeServico = tempo_servico;
-    processos[numProcessos].tempoChegada = tempo_chegada;
-    processos[numProcessos].estado = PRONTO;
+    processos[numeroProcessos].pid = pid;
+    processos[numeroProcessos].tempoDeServico = tempo_servico;
+    processos[numeroProcessos].tempoChegada = tempo_chegada;
+    processos[numeroProcessos].estado = PRONTO;
+    processos[numeroProcessos].qntIO = numero_io;
 
-    processos[numProcessos].io = (IO *) malloc(sizeof(IO) * numero_io);
+    processos[numeroProcessos].io = (IO *) malloc(sizeof(IO) * numero_io);
     for(int i=0; i<numero_io; i++){
-      processos[numProcessos].io[i].tempoIO = tempos_io[i];
-      processos[numProcessos].io[i].tipoIO = tipos_io[i];
-      processos[numProcessos].io[i].tempoChegada = tempo_chegada_io[i];
+      processos[numeroProcessos].io[i].tempoIO = tempos_io[i];
+      processos[numeroProcessos].io[i].tipoIO = tipos_io[i];
+      processos[numeroProcessos].io[i].tempoChegada = tempo_chegada_io[i];
     }
 
 
     //Fim da associação
 
-    numProcessos++;
+    numeroProcessos++;
   }
 
   fclose(arquivo);
+  return processos;
 }
 
 void printarProcessos(){
-  for(int i=0; i<numProcessos; i++){
+  for(int i=0; i<numeroProcessos; i++){
     printf("Processo %d\n", processos[i].pid);
     printf("Tempo de chegada: %d\n", processos[i].tempoChegada);
     printf("Tempo de servico: %d\n", processos[i].tempoDeServico);
-    printf("Numero de IOs: %d\n", MAX_IO_TIME);
+    printf("Numero de IOs: %d\n", processos[i].qntIO);
     for(int j=0; j<=numero_io; j++){
       if(processos[i].io[j].tempoIO == 0){
         break;
       }
-      printf("IO %d\n", j);
-      printf("Tipo: %d\n", processos[i].io[j].tipoIO);
+      printf("IO %d\n", j+1);
+      if(processos[i].io[j].tipoIO == 0){
+        printf("DISCO\n");
+      }else if(processos[i].io[j].tipoIO == 1){
+        printf("FITA\n");
+      }else{
+        printf("IMPRESSORA\n");
+      }
       printf("Tempo de IO: %d\n", processos[i].io[j].tempoIO);
       printf("Tempo de chegada: %d\n", processos[i].io[j].tempoChegada);
     }
@@ -93,9 +106,10 @@ void printarProcessos(){
 
 }
 
-int main() {
-  leProcessosArquivo("teste1.txt");
+Process* leitura(char *nomeArquivo){
+  Process* processos = malloc(sizeof(Process) * MAX_PROCESS);
+  processos = leProcessosArquivo(nomeArquivo);
   printarProcessos();
 
-  return 0;
+  return processos;
 }
