@@ -84,3 +84,24 @@ int contains(Queue *queue, int pid) {
   return 0; // Processo não encontrado
 }
 
+Queue* removeDuplicatas(Queue *queue) {
+  Queue *newQueue = alocaQueue();
+  Node *current = queue->head;
+  while (current != NULL) {
+    if (contains(newQueue, current->process.pid) == 0) {
+      enqueue(newQueue, current->process);
+    }
+    current = current->next;
+  }
+  return newQueue;
+}
+
+void freeQueue(Queue* queue) {
+  Node* current = queue->head;
+  while (current != NULL) {
+    Node* next = current->next;
+    free(current);
+    current = next;
+  }
+  free(queue);
+}

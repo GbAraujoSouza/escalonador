@@ -174,6 +174,7 @@ int main()
     printQueue(qAltaPrioridade);
 
     printf("PIDs na fila de baixa: ");
+    qBaixaPrioridade = removeDuplicatas(qBaixaPrioridade);
     printQueue(qBaixaPrioridade);
 
     if (!isEmpty(qIODisco))
