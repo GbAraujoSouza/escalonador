@@ -2,16 +2,9 @@
 #define TYPES_H
 
 typedef enum{
-  PRONTO,
-  OCUPADO,
-  ESPERANDO,
-  TERMINADO
-} estadosdoProcesso;
-
-typedef enum{
   DISCO,
+  FITA,
   IMPRESSORA,
-  FITA
 } tiposIO;
 
 typedef struct{
@@ -27,7 +20,6 @@ typedef struct{
   int tempoChegada;
   IO *io;
   int qntIO;
-  estadosdoProcesso estado;
 } Process;
 
 #endif

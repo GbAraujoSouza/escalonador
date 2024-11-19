@@ -1,21 +1,19 @@
 #include "process.h"
-#include "queue.c"
-#include "read.c"
-#include "process.h"
+#include "queue.h"
+#include "read.h"
 #include <stdio.h>
 #include <unistd.h>
-#define MAX_PROCESS 10
-#define TIME_SLICE 4
-#define MAX_SERVICE_TIME 20
-#define MAX_IO_TIME 5
+// #define MAX_PROCESS 10
+// #define TIME_SLICE 4
+// #define MAX_SERVICE_TIME 20
+// #define MAX_IO_TIME 5
 
-#define QUANTUM 5
+#define QUANTUM 4
 
-//Tipos de IO e suas respectivas unidades de tempo
-#define TEMPO_IMPRESSORA 8
-#define TEMPO_FITA 3
-#define TEMPO_DISCO 7
-
+// Tipos de IO e suas respectivas unidades de tempo
+//  #define TEMPO_IMPRESSORA 8
+//  #define TEMPO_FITA 3
+//  #define TEMPO_DISCO 7
 
 Queue *qNovosProcessos, *qAltaPrioridade, *qBaixaPrioridade;
 Queue *qIODisco, *qIOFita, *qIOImpressora;
@@ -23,15 +21,13 @@ int numProcessos = 0;
 int processosTerminados = 0;
 int time = 0;
 
-void alocaNovosProcessos()
-{
+void alocaNovosProcessos() {
   while (!isEmpty(qNovosProcessos) &&
-         peek(qNovosProcessos)->tempoChegada <= time)
-  {
+         peek(qNovosProcessos)->tempoChegada <= time) {
     Process novoProcesso;
     dequeue(qNovosProcessos, &novoProcesso);
-    if(contains(qAltaPrioridade, novoProcesso.pid) == 0)
-      enqueue(qAltaPrioridade, novoProcesso);
+    // if (contains(qAltaPrioridade, novoProcesso.pid) == 0)
+    enqueue(qAltaPrioridade, novoProcesso);
     printf("Novo processo com pid: %d\n", novoProcesso.pid);
   }
 }
@@ -40,91 +36,87 @@ int tempoDiscoConcluido = 0;
 int tempoFitaConcluido = 0;
 int tempoImpressoraConcluido = 0;
 
-void liberaProcessosDoIO()
-{
-  while (!isEmpty(qIOFita))
-  {
+void liberaProcessosDoIO() {
+  while (!isEmpty(qIOFita)) {
     Process *p = peek(qIOFita);
-    int ioConcluido = 0;
-    for (int i = 0; i < p->qntIO; i++)
-    {
-      if (p->io[i].tipoIO == FITA && p->io[i].tempoInicio + p->io[i].tempoIO <= time)
-      {
-        ioConcluido = 1;
+    IO io;
+
+    for (int i = 0; i < p->qntIO; i++) {
+      if (p->io[i].tipoIO == FITA) {
+        io = p->io[i];
         break;
       }
     }
-    if (ioConcluido)
-    {
+    tempoFitaConcluido = (tempoFitaConcluido > io.tempoInicio)
+                             ? tempoFitaConcluido
+                             : io.tempoInicio;
+
+    if (tempoFitaConcluido + io.tempoIO <= time) {
       Process processoRetornado;
       dequeue(qIOFita, &processoRetornado);
-      if(contains(qAltaPrioridade, processoRetornado.pid) == 0)
-        enqueue(qAltaPrioridade, processoRetornado);
+      // if (contains(qAltaPrioridade, processoRetornado.pid) == 0)
+      enqueue(qAltaPrioridade, processoRetornado);
       printf("Processo PID: %d saiu da fila de Fita em %du.t.\n",
-             processoRetornado.pid, time);
-    }
-    else
-    {
+             processoRetornado.pid, tempoFitaConcluido + io.tempoIO);
+    } else {
       break;
     }
   }
 
-  while (!isEmpty(qIOImpressora))
-  {
+  while (!isEmpty(qIOImpressora)) {
     Process *p = peek(qIOImpressora);
-    int ioConcluido = 0;
-    for (int i = 0; i < p->qntIO; i++)
-    {
-      if (p->io[i].tipoIO == IMPRESSORA && p->io[i].tempoInicio + p->io[i].tempoIO <= time)
-      {
-        ioConcluido = 1;
+    IO io;
+
+    for (int i = 0; i < p->qntIO; i++) {
+      if (p->io[i].tipoIO == IMPRESSORA) {
+        io = p->io[i];
         break;
       }
     }
-    if (ioConcluido)
-    {
+    tempoImpressoraConcluido = (tempoImpressoraConcluido > io.tempoInicio)
+                                   ? tempoImpressoraConcluido
+                                   : io.tempoInicio;
+
+    if (tempoImpressoraConcluido + io.tempoIO <= time) {
       Process processoRetornado;
       dequeue(qIOImpressora, &processoRetornado);
-      if(contains(qAltaPrioridade, processoRetornado.pid) == 0)
-        enqueue(qAltaPrioridade, processoRetornado);
-      printf("Processo PID: %d saiu da fila de Impressora em %du.t.\n",
-             processoRetornado.pid, time);
-    }
-    else
-    {
+      // if (contains(qAltaPrioridade, processoRetornado.pid) == 0)
+      enqueue(qAltaPrioridade, processoRetornado);
+      printf("Processo PID: %d saiu da fila de Impressao em %du.t.\n",
+             processoRetornado.pid, tempoImpressoraConcluido + io.tempoIO);
+    } else {
       break;
     }
   }
 
-  while (!isEmpty(qIODisco))
-  {
+  while (!isEmpty(qIODisco)) {
     Process *p = peek(qIODisco);
-    int ioConcluido = 0;
-    for (int i = 0; i < p->qntIO; i++)
-    {
-      if (p->io[i].tipoIO == DISCO && p->io[i].tempoInicio + p->io[i].tempoIO <= time)
-      {
-        ioConcluido = 1;
+    IO io;
+
+    for (int i = 0; i < p->qntIO; i++) {
+      if (p->io[i].tipoIO == DISCO) {
+        io = p->io[i];
         break;
       }
     }
-    if (ioConcluido)
-    {
+    tempoDiscoConcluido = (tempoDiscoConcluido > io.tempoInicio)
+                              ? tempoDiscoConcluido
+                              : io.tempoInicio;
+
+    if (tempoDiscoConcluido + io.tempoIO <= time) {
       Process processoRetornado;
       dequeue(qIODisco, &processoRetornado);
-      if(contains(qAltaPrioridade, processoRetornado.pid) == 0)
-        enqueue(qBaixaPrioridade, processoRetornado);
+      // if (contains(qAltaPrioridade, processoRetornado.pid) == 0)
+      enqueue(qBaixaPrioridade, processoRetornado);
       printf("Processo PID: %d saiu da fila de Disco em %du.t.\n",
-             processoRetornado.pid, time);
-    }
-    else
-    {
+             processoRetornado.pid, tempoDiscoConcluido + io.tempoIO);
+    } else {
       break;
     }
   }
 }
 
-void alocaInicial(){
+void alocaInicial() {
   qNovosProcessos = alocaQueue();
   qAltaPrioridade = alocaQueue();
   qBaixaPrioridade = alocaQueue();
@@ -134,22 +126,19 @@ void alocaInicial(){
   qIOImpressora = alocaQueue();
 }
 
-void leProcessos(){
+void leProcessos() {
   printf("Digite o nome do arquivo a ser lido: ");
   char nomeArquivo[100];
   scanf("%s", nomeArquivo);
-  Process *processos = leitura(nomeArquivo);
-  for (int i = 0; i < numeroProcessos; i++)
-  {
-    if(contains(qNovosProcessos, processos[i].pid) == 0)
-      enqueue(qNovosProcessos, processos[i]);
-    numProcessos++;
+  Process *processos = leitura(nomeArquivo, &numProcessos);
+  for (int i = 0; i < numProcessos; i++) {
+    // if (contains(qNovosProcessos, processos[i].pid) == 0)
+    enqueue(qNovosProcessos, processos[i]);
   }
   sleep(1);
 }
 
-int main()
-{
+int main() {
 
   alocaInicial();
 
@@ -161,8 +150,7 @@ int main()
   int tempoProcessoFinalizados[numProcessos];
 
   puts("=-=-=-=-=-=-=-=-=-=-=-=-=INICIO=-=-=-=-=-=-=-=-=-=-=-=-=");
-  while (processosTerminados < numProcessos)
-  {
+  while (processosTerminados < numProcessos) {
     printf("Time: %d\n", time);
     // tratar novos processos
     alocaNovosProcessos();
@@ -174,52 +162,38 @@ int main()
     printQueue(qAltaPrioridade);
 
     printf("PIDs na fila de baixa: ");
-    qBaixaPrioridade = removeDuplicatas(qBaixaPrioridade);
+    // qBaixaPrioridade = removeDuplicatas(qBaixaPrioridade);
     printQueue(qBaixaPrioridade);
 
-    if (!isEmpty(qIODisco))
-    {
-      printf("PIDs na fila de IO do Disco: ");
-      printQueue(qIODisco);
-    }
-
-    if (!isEmpty(qIOFita))
-    {
-      printf("PIDs na fila de IO da Fita: ");
-      printQueue(qIOFita);
-    }
-
-    if (!isEmpty(qIOImpressora))
-    {
-      printf("PIDs na fila de IO da Impressora: ");
-      printQueue(qIOImpressora);
-    }
     sleep(1);
-    int numProcessosIO = qIODisco->size + qIOFita->size + qIOImpressora->size;
-    numProcessosRestantes = qAltaPrioridade->size + qBaixaPrioridade->size + numProcessosIO;
 
-    if (numProcessosRestantes == 0)
-    {
+    printf("tamanho da fila de alta: %d\n", qAltaPrioridade->size);
+    printf("tamanho da fila de baixa: %d\n", qBaixaPrioridade->size);
+    int numProcessosIO = qIODisco->size + qIOFita->size + qIOImpressora->size;
+    numProcessosRestantes = qAltaPrioridade->size + qBaixaPrioridade->size;
+
+    if (numProcessosRestantes == 0) {
       puts("Sem processos a executar\n");
-      time+= QUANTUM;
+      time += 1;
       continue;
     }
 
     // Pegar processo com a prioridade mais alta
     Process processoParaExecutar;
-    if (qAltaPrioridade->size > 0)
+    if (qAltaPrioridade->size > 0) {
       dequeue(qAltaPrioridade, &processoParaExecutar);
-    else
+      printf("Peguei o pid %d da fila de alta\n", processoParaExecutar.pid);
+    } else {
       dequeue(qBaixaPrioridade, &processoParaExecutar);
+      printf("Peguei o pid %d da fila de baixa\n", processoParaExecutar.pid);
+    }
 
     // checar se processo precisa de IO
     int instanteProximoIO = -1;
     int indiceProximoIO = -1;
-    for (int i = 0; i < processoParaExecutar.qntIO; i++)
-    {
+    for (int i = 0; i < processoParaExecutar.qntIO; i++) {
       // olhar a lista de IO e pegar aquele que nao foi pedido
-      if (processoParaExecutar.io[i].tempoChegada != -1)
-      {
+      if (processoParaExecutar.io[i].tempoChegada != -1) {
         instanteProximoIO = processoParaExecutar.io[i].tempoChegada;
 
         // -1 no tempo de chegada indica que o IO ja foi pedido
@@ -229,60 +203,55 @@ int main()
       }
     }
 
-    if (instanteProximoIO != -1)
-    {
+    if (instanteProximoIO != -1) {
       // processo atual precisa de IO
-      if (instanteProximoIO <= (time + QUANTUM))
-      {
+      if (instanteProximoIO <= (time + QUANTUM)) {
         // pedido de IO ocorrera na janela de tempo atual
         processoParaExecutar.tempoDeServico -= instanteProximoIO;
 
         // armazenar o processo na respectiva fila de IO;
-        processoParaExecutar.io[indiceProximoIO].tempoInicio = instanteProximoIO+time;
+        processoParaExecutar.io[indiceProximoIO].tempoInicio =
+            instanteProximoIO + time;
         IO proximoIO = processoParaExecutar.io[indiceProximoIO];
 
         time += instanteProximoIO;
         printf("Processo PID: %d executou por %du.t.\n",
                processoParaExecutar.pid, instanteProximoIO);
 
-        switch (proximoIO.tipoIO)
-        {
+        printf("tipo io: %d\n", proximoIO.tipoIO);
+        switch (proximoIO.tipoIO) {
         case DISCO:
-          if(contains(qIODisco, processoParaExecutar.pid) == 0)
-            enqueue(qIODisco, processoParaExecutar);
+          // if (contains(qIODisco, processoParaExecutar.pid) == 0)
+          enqueue(qIODisco, processoParaExecutar);
           printf("Processo PID: %d pediu operacao de IO Disco em %du.t.\n",
                  processoParaExecutar.pid, time);
           break;
         case IMPRESSORA:
-          if(contains(qIOImpressora, processoParaExecutar.pid) == 0)
-            enqueue(qIOImpressora, processoParaExecutar);
+          // if (contains(qIOImpressora, processoParaExecutar.pid) == 0)
+          enqueue(qIOImpressora, processoParaExecutar);
           printf("Processo PID: %d pediu operacao de IO Impressora em %du.t.\n",
                  processoParaExecutar.pid, time);
           break;
         case FITA:
-          if(contains(qIOFita, processoParaExecutar.pid) == 0)
-            enqueue(qIOFita, processoParaExecutar);
+          // if (contains(qIOFita, processoParaExecutar.pid) == 0)
+          enqueue(qIOFita, processoParaExecutar);
           printf("Processo PID: %d pediu operacao de IO Fita em %du.t.\n",
                  processoParaExecutar.pid, time);
           break;
         }
-      }
-      else
-      {
+      } else {
         // pedido de IO NAO sera na janela de tempo atual
         // processo sofrera preampcao
         processoParaExecutar.tempoDeServico -= QUANTUM;
         printf("Processo PID: %d executou por %du.t.\n",
                processoParaExecutar.pid, QUANTUM);
 
-        if(contains(qAltaPrioridade, processoParaExecutar.pid) == 0)
-          enqueue(qBaixaPrioridade, processoParaExecutar);
+        // if (contains(qAltaPrioridade, processoParaExecutar.pid) == 0)
+        enqueue(qBaixaPrioridade, processoParaExecutar);
 
         time += QUANTUM;
       }
-    }
-    else if (processoParaExecutar.tempoDeServico <= QUANTUM)
-    {
+    } else if (processoParaExecutar.tempoDeServico <= QUANTUM) {
       // executar processo na CPU
       // processo pode ser finalizado sem preampcao
       printf("Processo PID: %d executou por %du.t.\n", processoParaExecutar.pid,
@@ -296,19 +265,32 @@ int main()
       tempoProcessoFinalizados[processosTerminados] = time;
 
       processosTerminados++;
-    }
-    else
-    {
+    } else {
       // processo ira sofrer preampcao
       // int tempoDeServicoExecutado = processoParaExecutar.tempoDeServico;
       processoParaExecutar.tempoDeServico -= QUANTUM;
       printf("Processo PID: %d executou por %du.t.\n", processoParaExecutar.pid,
              QUANTUM);
 
-      if(contains(qAltaPrioridade, processoParaExecutar.pid) == 0)
-        enqueue(qBaixaPrioridade, processoParaExecutar);
+      // if (contains(qAltaPrioridade, processoParaExecutar.pid) == 0)
+      enqueue(qBaixaPrioridade, processoParaExecutar);
 
       time += QUANTUM;
+    }
+
+    if (!isEmpty(qIODisco)) {
+      printf("PIDs na fila de IO do Disco: ");
+      printQueue(qIODisco);
+    }
+
+    if (!isEmpty(qIOFita)) {
+      printf("PIDs na fila de IO da Fita: ");
+      printQueue(qIOFita);
+    }
+
+    if (!isEmpty(qIOImpressora)) {
+      printf("PIDs na fila de IO da Impressora: ");
+      printQueue(qIOImpressora);
     }
 
     puts("");
@@ -318,10 +300,9 @@ int main()
   printf("Tempo Final: %d\n", time);
 
   printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
-  for (int i = 0; i < numProcessos; i++)
-  {
-    printf("P%d foi finalizado no tempo %d u.t.\n",
-           pidProcessoFinalizados[i], tempoProcessoFinalizados[i]);
+  for (int i = 0; i < numProcessos; i++) {
+    printf("P%d foi finalizado no tempo %d u.t.\n", pidProcessoFinalizados[i],
+           tempoProcessoFinalizados[i]);
     printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
   }
 
