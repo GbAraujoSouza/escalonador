@@ -73,29 +73,6 @@ void printQueue(Queue* queue) {
   puts("");
 }
 
-int contains(Queue *queue, int pid) {
-  Node *current = queue->head;
-  while (current != NULL) {
-    if (current->process.pid == pid) {
-      return 1; // Processo encontrado
-    }
-    current = current->next;
-  }
-  return 0; // Processo não encontrado
-}
-
-Queue* removeDuplicatas(Queue *queue) {
-  Queue *newQueue = alocaQueue();
-  Node *current = queue->head;
-  while (current != NULL) {
-    if (contains(newQueue, current->process.pid) == 0) {
-      enqueue(newQueue, current->process);
-    }
-    current = current->next;
-  }
-  return newQueue;
-}
-
 void freeQueue(Queue* queue) {
   Node* current = queue->head;
   while (current != NULL) {
