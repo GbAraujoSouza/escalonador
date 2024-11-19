@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#define QUANTUM 4
+#define QUANTUM 5
 
 
 Queue *qNovosProcessos, *qAltaPrioridade, *qBaixaPrioridade;
@@ -201,7 +201,6 @@ int main() {
         printf("Processo PID: %d executou por %du.t.\n",
                processoParaExecutar.pid, instanteProximoIO);
 
-        printf("tipo io: %d\n", proximoIO.tipoIO);
         switch (proximoIO.tipoIO) {
         case DISCO:
           enqueue(qIODisco, processoParaExecutar);

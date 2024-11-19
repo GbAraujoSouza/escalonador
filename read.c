@@ -26,9 +26,9 @@ Process* leProcessosArquivo(const char *nomeArquivo, int* numeroProcessos){
     }
 
     int pid, tempo_chegada, tempo_servico;
-    int tipos_io[MAX_IO_TIME];
-    int tempos_io[MAX_IO_TIME];
-    int tempo_chegada_io[MAX_IO_TIME];
+    int tipos_io[MAX_IO];
+    int tempos_io[MAX_IO];
+    int tempo_chegada_io[MAX_IO];
 
     char *token = strtok(line, ";");
     pid = atoi(token);
