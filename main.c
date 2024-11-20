@@ -273,7 +273,7 @@ int main() {
   }
 
   puts("=-=-=-=-=-=-=-=-=-=-=-=-=-FIM-=-=-=-=-=-=-=-=-=-=-=-=-=");
-  printf("Tempo Final: %d\n", time);
+  printf("Tempo Final: %du.t\n", time);
 
   printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
   for (int i = 0; i < numProcessos; i++) {
@@ -281,6 +281,13 @@ int main() {
            tempoProcessoFinalizados[i]);
     printf("=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=\n");
   }
+
+  freeQueue(qNovosProcessos);
+  freeQueue(qBaixaPrioridade);
+  freeQueue(qAltaPrioridade);
+  freeQueue(qIOImpressora);
+  freeQueue(qIODisco);
+  freeQueue(qIOFita);
 
   return 0;
 }
